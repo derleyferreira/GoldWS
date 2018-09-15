@@ -109,10 +109,19 @@ public class TbPessoaFacadeREST extends AbstractFacade<TbPessoa> {
         
         Login login = gson.fromJson(loginjson, Login.class);
         
-        Query q = getEntityManager().createQuery("SELECT t FROM TbPessoa t WHERE t.pesEmail = :pesEmail and t.pesSenha = :pesSenha");
+        String query = "SELECT t FROM TbPessoa t WHERE t.pesEmail = :pesEmail";
+        
+        if (!login.getSenha().toString().isEmpty()){
+            query = query + " and t.pesSenha = :pesSenha";
+        }
+        
+        Query q = getEntityManager().createQuery( query );
         
         q.setParameter("pesEmail", login.getLogin());
-        q.setParameter("pesSenha", login.getSenha());
+        
+        if (!login.getSenha().toString().isEmpty()){
+           q.setParameter("pesSenha", login.getSenha());
+        }
         
         TbPessoa p = null;
         if (!q.getResultList().isEmpty()){
@@ -121,5 +130,6 @@ public class TbPessoaFacadeREST extends AbstractFacade<TbPessoa> {
         
         return p;
                                 
-    }    
+    }  
+    
 }

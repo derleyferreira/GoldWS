@@ -6,11 +6,19 @@
 package com.gold.agenda.service;
 
 import com.gold.agenda.TbAgendamento;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.TemporalType;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -20,6 +28,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import org.eclipse.persistence.jpa.jpql.parser.DateTime;
 
 /**
  *
@@ -83,7 +92,47 @@ public class TbAgendamentoFacadeREST extends AbstractFacade<TbAgendamento> {
     public String countREST() {
         return String.valueOf(super.count());
     }
-
+    
+    @GET
+    @Path("pordata/{ano}/{mes}/{dia}")    
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<TbAgendamento> findPorData(@PathParam("ano") int ano,
+                                           @PathParam("mes") int mes,
+                                           @PathParam("dia") int dia) {
+        
+        List<TbAgendamento> retorno = null;
+        
+        Calendar c = Calendar.getInstance();
+        c.set(c.YEAR, ano);
+        c.set(c.MONTH, mes);
+        c.set(c.DATE,dia);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        
+        Date data = null;
+        
+        String data1 = sdf.format(c.getTime());
+        
+        
+        
+        try {
+            data = sdf.parse(data1);
+        } catch (ParseException ex) {
+            Logger.getLogger(TbAgendamentoFacadeREST.class.getName()).log(Level.SEVERE, null, ex);
+        }
+                              
+        Query q = getEntityManager().createNamedQuery("TbAgendamento.findByAgeData");
+        
+        if (data != null){
+           q.setParameter("ageData", data, TemporalType.DATE);
+        
+           retorno = q.getResultList();
+        }
+        
+        return retorno;
+        
+        
+    }
+    
     @Override
     protected EntityManager getEntityManager() {
         if (em == null){
